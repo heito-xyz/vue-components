@@ -1,0 +1,20 @@
+.dark:root {
+    /* ? Text */
+    --text-primary: #e8e8e8;
+
+    /* ? Background */
+    --background-primary: #010101;
+    --background-secondary: #1e1e1e;
+    --background-t: #424242;
+
+    /* ? Colors */
+    --color-red: #ff2b2b;
+}
+
+.light:root {
+    /* ? Text */
+    --text-primary: #010101;
+
+    /* ? Background */
+    --background-primary: #e8e8e8;
+}

@@ -1,13 +1,13 @@
 {
   "name": "@heito/vue-components",
-  "version": "1.0.0",
-  "description": "Vue components",
+  "version": "1.0.1",
+  "description": "Vue components for heito.xyz",
   "license": "ISC",
   "author": "",
   "type": "commonjs",
   "scripts": {
-    "build": "vite build",
-    "dev": "vite"
+    "dev": " vite",
+    "build": "vite build"
   },
   "files": ["dist"],
   "main": "./dist/vue-components.umd.js",
