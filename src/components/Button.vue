@@ -70,6 +70,8 @@ const props = withDefaults(defineProps<{
 button {
     cursor: pointer;
     display: flex;
+    margin: 0;
+    padding: 0;
     border: none;
     background-color: transparent;
 }
@@ -107,6 +109,7 @@ button {
 }
 
 .ui-button .content {
+    width: 100%;
     position: relative;
     transform-origin: center;
 }
