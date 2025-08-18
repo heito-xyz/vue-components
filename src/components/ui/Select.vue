@@ -10,8 +10,8 @@
 
         <Transition name="show-select-options">
             <div class="options" v-show="isOpened">
-                <template v-for="(option, index) in options" :key="index">
-                    <template v-if="option?.type === 'label' || option?.type === 'separator' || option?.useDefaultStyle === true">
+                <template v-for="(option, index) in listOptions" :key="index">
+                    <template v-if="option?.type === 'label' || option?.type === 'separator' || (option.type === 'option' && option?.useDefaultStyle === true)">
                         <SelectOption :option="option"
                             @click="onSelectOption(option)"
                         />
@@ -38,11 +38,11 @@ import { computed, ref } from 'vue';
 
 // * Components
 import Button from './Button.vue';
-import SelectOption, { type Option } from './modules/ui/SelectOption.vue';
+import SelectOption, { type OptionOption, type Option, type OptionType } from '../modules/ui/SelectOption.vue';
 
 
 const $emit = defineEmits({
-    select(option: Option) {
+    select(option: OptionOption) {
         return option;
     }
 });
@@ -51,7 +51,7 @@ const $emit = defineEmits({
 const props = defineProps<{
     placeholder?: string;
     disabled?: boolean;
-    options?: Array<Option>;
+    options?: Array<Option & Partial<{ type: OptionType }>>;
 }>();
 
 
@@ -59,13 +59,23 @@ const isOpened = ref(false);
 const selectedValue = ref<string | number | boolean>();
 
 
+const listOptions = computed(() => {
+    return props.options?.map(({ type, ...option }) => {
+        return {
+            type: type ?? 'option',
+            ...option
+        }
+    }) as Array<Option>;
+});
+
+
 const selectedOption = computed(() => {
-    return props.options?.find(o => (o?.type === 'option' || !o?.type) && o?.value === selectedValue.value) || null;
+    return (listOptions.value?.find(o => o.type === 'option' && o.value === selectedValue.value) as OptionOption) || null;
 });
 
 
 function onSelectOption(option: Option) {
-    if (option?.type === 'label' || option?.type === 'separator') return;
+    if (option.type !== 'option') return;
 
     selectedValue.value = option?.value;
 
@@ -76,8 +86,8 @@ function onSelectOption(option: Option) {
 
 
 
-function setMenuPosition(elHeader: HTMLButtonElement, elOptions: HTMLDivElement) {
-    const { width, top, bottom, y, x } = elHeader?.getBoundingClientRect();
+function setMenuPosition(elHeader: HTMLElement, elOptions: HTMLElement) {
+    const { width, top, bottom } = elHeader?.getBoundingClientRect();
     const { width: w, height } = elOptions?.getBoundingClientRect();
 
     const isTop = height + bottom > window.innerHeight;
@@ -93,9 +103,9 @@ function setMenuPosition(elHeader: HTMLButtonElement, elOptions: HTMLDivElement)
 function onShowSelectMenu(event: MouseEvent) {
     isOpened.value = true;
 
-    const elHeader = (event.target as HTMLButtonElement)?.parentElement;
+    const elHeader = (event.target as HTMLButtonElement)?.parentElement!;
     const elParent = elHeader?.parentElement;
-    const elOptions = elParent?.querySelector('.options');
+    const elOptions = elParent?.querySelector('.options') as HTMLElement;
 
     const setPosition = () => {
         if (!isOpened.value) {

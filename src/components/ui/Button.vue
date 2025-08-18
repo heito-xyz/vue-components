@@ -1,6 +1,6 @@
 <template>
     <button :class="['ui-button', variant, { disabled }]"
-        :disabled="disabled"
+        :disabled="Boolean(disabled || props?.disabled === 'all')"
 
         @click="$emit('click', $event)"
     >

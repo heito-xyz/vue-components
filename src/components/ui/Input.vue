@@ -14,8 +14,8 @@
             :max="max"
             :maxlength="max"
 
-            @input="$emit('input', $event)"
-            @change="$emit('change', $event)"
+            @input="$emit('input', $event as InputEvent)"
+            @change="$emit('change', $event as InputEvent)"
             @focus="$emit('focus', $event)"
             @blur="$emit('blur', $event)"
         >
@@ -53,13 +53,13 @@ const $slots = defineSlots<{
 
 
 const value = defineModel('value', {
-    set(v) {
+    set(v: string | number) {
         const { type, min, max } = props;
 
-        if (type !== 'number') return v;
+        if (type !== 'number' || typeof v !== 'number') return v;
 
-        if (v < min) return min;
-        if (v > max) return max;
+        if (min && v < min) return min;
+        if (max && v > max) return max;
 
         return v;
     },

@@ -1,28 +1,63 @@
 {
   "name": "@heito/vue-components",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "Vue components for heito.xyz",
   "license": "ISC",
-  "author": "",
-  "type": "commonjs",
-  "scripts": {
-    "dev": " vite",
-    "build": "vite build"
-  },
-  "files": ["dist"],
-  "main": "./dist/vue-components.umd.js",
-  "module": "./dist/vue-components.es.js",
+  "main": "./dist/index.umd.js",
+  "module": "./dist/index.es.js",
+  "style": "./dist/style.css",
   "exports": {
     ".": {
-      "import": "./dist/vue-components.es.js",
-      "require": "./dist/vue-components.umd.js"
-    }
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js",
+      "style": "./dist/style.css"
+    },
+    "./styles": "./dist/style.css"
   },
+  "files": [
+    "dist"
+  ],
+  "author": {
+    "name": "heito",
+    "email": "me@heito.xyz",
+    "url": "https://heito.xyz"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && vue-tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/heito-xyz/vue-components"
+  },
+  "homepage": "https://github.com/heito-xyz/vue-components",
+  "bugs": {
+    "url": "https://github.com/heito-xyz/vue-components/issues"
+  },
+  "keywords": [
+    "vue",
+    "components",
+    "ui",
+    "library",
+    "typescript",
+    "vue3",
+    "nuxt3",
+    "nuxt4"
+  ],
   "dependencies": {
     "vue": "^3.5.18"
   },
   "devDependencies": {
+    "@types/node": "^24.3.0",
     "@vitejs/plugin-vue": "^6.0.1",
-    "vite": "^7.1.2"
+    "typescript": "^5.9.2",
+    "vite": "^7.1.2",
+    "vite-plugin-dts": "^4.5.4",
+    "vue-tsc": "^3.0.5",
+    "sass": "^1.90.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

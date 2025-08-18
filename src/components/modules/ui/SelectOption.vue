@@ -1,8 +1,8 @@
 <template>
-    <div :class="['option', option?.type || 'default', { disabled: option?.disabled }]"
+    <div :class="['option', !option?.type || option?.type === 'option' ? 'default' : option?.type, { disabled: option?.type === 'option' && option?.disabled }]"
         @click="onClick"
     >
-        <template v-if="option?.type === 'option' || !option?.type">
+        <template v-if="option?.type === 'option' || option?.type === undefined">
             <div>
                 <div>{{ option?.label || option?.value }}</div>
 
@@ -20,13 +20,13 @@
 
 <script lang="ts" setup>
 
-type OptionType = 'option' | 'label' | 'separator';
+export type OptionType = 'option' | 'label' | 'separator';
 
-interface TemplateOption<Type = OptionType> {
+interface TemplateOption<Type = string> {
     type: Type;
 }
 
-interface OptionOption extends TemplateOption<''> {
+export interface OptionOption extends TemplateOption<'option'> {
     label?: string;
     text?: string;
     value: string | number | number;
@@ -34,19 +34,17 @@ interface OptionOption extends TemplateOption<''> {
     useDefaultStyle?: boolean;
 }
 
-interface OptionLabel extends TemplateOption<'label'> {
+export interface OptionLabel extends TemplateOption<'label'> {
     value: string;
 }
 
-interface OptionSeparator extends TemplateOption<'separator'> {
-
-}
+export interface OptionSeparator extends TemplateOption<'separator'> {}
 
 export type Option = OptionOption | OptionLabel | OptionSeparator;
 
 
 const $emit = defineEmits({
-    click(event: MouseEvent, option: Option) {
+    click(event: MouseEvent, option: OptionOption) {
         return { event, option };
     }
 });
@@ -58,7 +56,7 @@ const props = defineProps<{
 
 
 function onClick(event: MouseEvent) {
-    if (props.option?.disabled) return;
+    if (props?.option?.type !== 'option' || props?.option?.disabled === true) return;
 
     $emit('click', event, props.option);
 }
@@ -68,6 +66,7 @@ function onClick(event: MouseEvent) {
 <style lang="css" scoped>
 
 .option {
+    color: var(--text-primary);
     font-size: 14px;
 }
 
