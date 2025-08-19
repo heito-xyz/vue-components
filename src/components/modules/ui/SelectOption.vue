@@ -2,7 +2,7 @@
     <div :class="['option', !option?.type || option?.type === 'option' ? 'default' : option?.type, { disabled: option?.type === 'option' && option?.disabled }]"
         @click="onClick"
     >
-        <template v-if="option?.type === 'option' || option?.type === undefined">
+        <template v-if="option?.type === 'option'">
             <div>
                 <div>{{ option?.label || option?.value }}</div>
 
@@ -23,7 +23,7 @@
 export type OptionType = 'option' | 'label' | 'separator';
 
 interface TemplateOption<Type = string> {
-    type: Type;
+    type?: Type;
 }
 
 export interface OptionOption extends TemplateOption<'option'> {

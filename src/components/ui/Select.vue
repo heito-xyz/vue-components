@@ -1,34 +1,38 @@
 <template>
     <div :class="['ui-select', { selected: Boolean(selectedOption) }]">
-        <Button variant="outline" :disabled="disabled"
-            @click="onShowSelectMenu"
-        >
-            <span>{{ selectedOption ? (selectedOption?.label || selectedOption?.value) : placeholder }}</span>
+        <Popover :side="side" :style="{ width: `${width}px` }">
+            <template v-slot="{ toggle, isOpened }">
+                <Button variant="outline" :disabled="disabled"
+                    @click.prevent.stop="toggle($event); onClick($event)"
+                >
+                    <span>{{ selectedOption ? (selectedOption?.label || selectedOption?.value) : placeholder }}</span>
 
-            <div>{{ isOpened ? '-' : '+' }}</div>
-        </Button>
+                    <div>{{ isOpened ? '-' : '+' }}</div>
+                </Button>
+            </template>
 
-        <Transition name="show-select-options">
-            <div class="options" v-show="isOpened">
-                <template v-for="(option, index) in listOptions" :key="index">
-                    <template v-if="option?.type === 'label' || option?.type === 'separator' || (option.type === 'option' && option?.useDefaultStyle === true)">
-                        <SelectOption :option="option"
-                            @click="onSelectOption(option)"
-                        />
-                    </template>
-
-                    <template v-else>
-                        <slot name="option"
-                            v-bind="{ option, index, select: () => onSelectOption(option) }"
-                        >
+            <template #content>
+                <div class="options">
+                    <template v-for="(option, index) in listOptions" :key="index">
+                        <template v-if="option?.type === 'label' || option?.type === 'separator' || (option.type === 'option' && option?.useDefaultStyle === true)">
                             <SelectOption :option="option"
                                 @click="onSelectOption(option)"
                             />
-                        </slot>
+                        </template>
+        
+                        <template v-else>
+                            <slot name="option"
+                                v-bind="{ option, index, select: () => onSelectOption(option) }"
+                            >
+                                <SelectOption :option="option"
+                                    @click="onSelectOption(option)"
+                                />
+                            </slot>
+                        </template>
                     </template>
-                </template>
-            </div>
-        </Transition>
+                </div>
+            </template>
+        </Popover>
     </div>
 </template>
 
@@ -38,6 +42,7 @@ import { computed, ref } from 'vue';
 
 // * Components
 import Button from './Button.vue';
+import Popover from './Popover.vue';
 import SelectOption, { type OptionOption, type Option, type OptionType } from '../modules/ui/SelectOption.vue';
 
 
@@ -48,30 +53,32 @@ const $emit = defineEmits({
 });
 
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
+    value?: string | number | boolean;
     placeholder?: string;
     disabled?: boolean;
+    side?: 'top' | 'bottom';
     options?: Array<Option & Partial<{ type: OptionType }>>;
-}>();
-
-
-const isOpened = ref(false);
-const selectedValue = ref<string | number | boolean>();
-
-
-const listOptions = computed(() => {
-    return props.options?.map(({ type, ...option }) => {
-        return {
-            type: type ?? 'option',
-            ...option
-        }
-    }) as Array<Option>;
+}>(), {
+    side: 'bottom',
+    disabled: false
 });
 
 
-const selectedOption = computed(() => {
-    return (listOptions.value?.find(o => o.type === 'option' && o.value === selectedValue.value) as OptionOption) || null;
-});
+const width = ref<number>(169);
+const selectedValue = ref<string | number | boolean>(props?.value!);
+
+
+const listOptions = computed(() => 
+    (props.options?.map(({ type, ...opt }) => ({
+        type: type ?? 'option',
+        ...opt
+    })) ?? []) as Array<Option>
+);
+
+const selectedOption = computed(() => 
+    (listOptions.value as Array<OptionOption>).find(o => o.type === 'option' && o.value === selectedValue.value) ?? null
+);
 
 
 function onSelectOption(option: Option) {
@@ -79,61 +86,70 @@ function onSelectOption(option: Option) {
 
     selectedValue.value = option?.value;
 
-    isOpened.value = false;
+    // isOpened.value = false;
 
     $emit('select', option);
 }
 
 
+function onClick(event: MouseEvent) {
+    const target = event?.currentTarget as HTMLElement;
 
-function setMenuPosition(elHeader: HTMLElement, elOptions: HTMLElement) {
-    const { width, top, bottom } = elHeader?.getBoundingClientRect();
-    const { width: w, height } = elOptions?.getBoundingClientRect();
+    if (!target) return;
 
-    const isTop = height + bottom > window.innerHeight;
-
-    console.log(width, w, (width - w) / 2)
-
-    elOptions.style.width = `${width}px`;
-    elOptions.style.top = `${isTop ? top - height - 8 : bottom}px`
-    elOptions.style.setProperty('--width', `${width}px`);
+    width.value = Math.min(Math.max(target?.clientWidth, 169), window.innerWidth > 512 ? 512 : (window.innerWidth - 24));
 }
 
 
-function onShowSelectMenu(event: MouseEvent) {
-    isOpened.value = true;
 
-    const elHeader = (event.target as HTMLButtonElement)?.parentElement!;
-    const elParent = elHeader?.parentElement;
-    const elOptions = elParent?.querySelector('.options') as HTMLElement;
+// function setMenuPosition(elHeader: HTMLElement, elOptions: HTMLElement) {
+//     if (!elHeader || !elOptions) return;
 
-    const setPosition = () => {
-        if (!isOpened.value) {
-            return document.removeEventListener('scroll', setPosition);
-        }
+//     const { width, top, bottom } = elHeader?.getBoundingClientRect();
+//     const { width: w, height } = elOptions?.getBoundingClientRect();
 
-        setMenuPosition(elHeader, elOptions);
-    };
+//     const isTop = height + bottom > window.innerHeight;
 
-    setTimeout(setPosition, 10);
+//     elOptions.style.width = `${width}px`;
+//     elOptions.style.top = `${isTop ? top - height - 8 : bottom}px`
+//     elOptions.style.setProperty('--width', `${width}px`);
+// }
 
-    const closeSelectMenu = () => {
-        window.addEventListener('click', e => {
-            const path = (e as any)?.path || (e.composedPath ? e.composedPath() : undefined);
 
-            if (path && path.includes(elParent)) return closeSelectMenu();
+// function onShowSelectMenu(event: MouseEvent) {
+//     isOpened.value = true;
 
-            isOpened.value = false;
+//     const elHeader = event.currentTarget as HTMLElement;
+//     const elParent = elHeader.parentElement!;
 
-            document.removeEventListener('scroll', setPosition);
-        }, { once: true });
+//     const setPosition = () => {
+//         if (!isOpened.value) return;
 
-        document.removeEventListener('scroll', setPosition);
-        document.addEventListener('scroll', setPosition);
-    }
+//         const elOptions = elParent?.querySelector('.options') as HTMLElement;
 
-    setTimeout(() => closeSelectMenu(), 10);
-}
+//         setMenuPosition(elHeader, elOptions);
+//     };
+
+//     setTimeout(setPosition, 10);
+
+//     const scrollHandler = () => requestAnimationFrame(setPosition);
+
+//     document.addEventListener('scroll', scrollHandler, { capture: true, passive: true });
+
+
+//     const clickHandler = (event: MouseEvent) => {
+//         const path = event.composedPath?.() || (event as any).path;
+
+//         if (path?.includes(elParent)) return;
+
+//         isOpened.value = false;
+
+//         document.removeEventListener('scroll', scrollHandler);
+//         document.removeEventListener('click', clickHandler);
+//     }
+
+//     document.addEventListener('click', clickHandler);
+// }
 
 </script>
 
