@@ -155,7 +155,7 @@ onUnmounted(() => {
     font-size: 12px;
     border-radius: 0.5rem;
     border: 1px solid var(--background-t);
-    background-color: bar(--background-secondary);
+    background-color: var(--background-secondary);
     z-index: 1000;
 
     &.top { --v: calc(var(--target-y) - 100% - var(--gap-v)); }
